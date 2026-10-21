@@ -2,12 +2,13 @@
   "name": "nodejs-course",
   "version": "1.0.0",
   "description": "",
-  "main": "server.js",
+  "main": "app.js",
   "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js",
-    "dev": "node --watch --no-warnings server.js"
+    "dev": "nodemon src/app.js",
+    "build": "npx prisma generate && npx prisma migrate deploy",
+    "start": "node src/app.js",
+    "test": "vitest"
   },
   "repository": {
     "type": "git",
@@ -21,16 +22,20 @@
   },
   "homepage": "https://github.com/epifaniovalente/NodeJS-course#readme",
   "dependencies": {
-    "@prisma/client": "^7.9.1",
+    "@prisma/client": "^6.19.3",
     "bcryptjs": "^3.0.3",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "fastify": "^5.11.0",
     "jsonwebtoken": "^9.0.3",
+    "mysql2": "^3.23.2",
+    "prisma": "^6.19.3",
+    "sequelize": "^6.37.8",
     "zod": "^4.4.3"
   },
   "devDependencies": {
-    "nodemon": "^3.1.14",
-    "prisma": "^7.9.1"
+    "nodemon": "^3.1.14"
   }
 }

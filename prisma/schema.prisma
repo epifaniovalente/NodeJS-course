@@ -1,0 +1,66 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model chamados {
+  id          String              @id @default(uuid())
+  titulo      String
+  descricao   String              @db.Text
+  prioridade  chamados_prioridade @default(Media)
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @default(now()) @db.DateTime(0)
+  clienteId   String
+  status      chamados_status     @default(Aberto)
+  usuarios    usuarios            @relation(fields: [clienteId], references: [id], onDelete: Cascade)
+  comentarios comentarios[]
+
+  @@index([clienteId], map: "chamados_clienteId_fkey")
+}
+
+model comentarios {
+  id        String   @id @default(uuid())
+  texto     String   @db.Text
+  createdAt DateTime @default(now())
+  chamadoID String
+  usuarioID String
+  chamados  chamados @relation(fields: [chamadoID], references: [id], onDelete: Cascade)
+  usuarios  usuarios @relation(fields: [usuarioID], references: [id], onDelete: Cascade)
+
+  @@index([chamadoID], map: "comentarios_chamadoID_fkey")
+  @@index([usuarioID], map: "comentarios_usuarioID_fkey")
+}
+
+model usuarios {
+  id          String        @id @default(uuid())
+  nome        String
+  email       String        @unique
+  senha       String
+  role        usuarios_role @default(Cliente)
+  createdAt   DateTime      @default(now())
+  chamados    chamados[]
+  comentarios comentarios[]
+}
+
+enum chamados_prioridade {
+  Baixa
+  Media
+  Alta
+}
+
+enum usuarios_role {
+  Cliente
+  Tecnico
+  Admin
+}
+
+enum chamados_status {
+  Aberto
+  Em_Andamento
+  Resolvido
+  Fechado
+}

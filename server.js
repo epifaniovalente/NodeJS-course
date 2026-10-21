@@ -1,31 +1,91 @@
-// import { createServer } from "node:http";
+import express from 'express';
+import { PrismaClient } from '@prisma/client';
+import { errorHandler } from './src/middleware/errorHandler.js';
+import { deletarUsuarioAuditoria } from './src/services/deletarUsuarioAuditoria.js';
+import cors from 'cors';
 
-// const server = createServer((req, res) => {
-//   console.log('Hello, world!');
-//   return res.end()
-// });
+const servidor = express();
+servidor.use(express.json());
+servidor.use(cors());
 
-// server.listen(3097)
+const users = [];
 
-import { fastify } from 'fastify';
+const prisma = new PrismaClient();
 
+// Adicionando usuarios
+servidor.post('/usuarios', async (req, resp) => {
+  await prisma.user.create({
+    data: {
+      nome: req.body.nome,
+      email: req.body.email,
+      idade: req.body.idade,
+    },
+  });
 
-const server = fastify();
-
-server.get('/', () => {
-  return 'Hello, Home Page';
+  resp.status(201).json(req.body);
 });
 
-server.get('/hello', () => {
-  return 'Hello, Hello page';
+// Actualizar Usuario
+servidor.put('/usuarios/:id', async (req, resp) => {
+  await prisma.user.update({
+    where: {
+      id: Number(req.params.id),
+    },
+    data: {
+      email: req.body.email,
+      // nome: req.body.nome,
+      // idade: req.body.idade,
+    },
+  });
+
+  resp.status(201).json(req.body);
 });
 
-server.get('/node', () => {
-  return 'Hello, Node Page';
+// deletar
+servidor.delete('/usuarios/:id', async (req, resp) => {
+  await prisma.user.delete({
+    where: {
+      id: Number(req.params.id),
+    },
+  });
+
+  // deletarUsuarioAuditoria(Number(req.params.id));
+
+  resp.status(200).json({ message: 'Usuario Deletado com sucesso!' });
 });
 
-// console.log(soma(13, 4));
+// Buscar Usuarios do sistema
+servidor.get('/usuarios', async (req, resp) => {
+  if (req.query) {
+    const lista = await prisma.user.findMany({
+      where: {
+        nome: req.query.nome,
+      },
+    });
+    return resp.status(200).json(lista);
+  }
 
-server.listen({
-  port: 3097,
+  const todos = await prisma.user.findMany();
+  return resp.status(200).json(todos);
 });
+
+servidor.get('/usuarios/:id', async (req, resp) => {
+  if (req.params) {
+    const user = await prisma.user.findUnique({
+      where: {
+        id: Number(req.params.id),
+      },
+      select: { nome: true, email: true },
+    });
+
+    return resp.status(200).json(user);
+  }
+});
+
+servidor.use(errorHandler);
+
+servidor.listen('3030', () => {
+  console.log('Servidor no Ar! Porta 3030');
+});
+
+export default servidor;
